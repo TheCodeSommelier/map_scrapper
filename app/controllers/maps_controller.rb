@@ -3,9 +3,10 @@ class MapsController < ApplicationController
   def index
     @virtual_browser = Mechanize.new
     sanderus_maps = map_scrapping_sanderus
-    # lazarova_maps = map_scrapping_lazarova
-    # raremaps_maps = map_scrapping_raremaps
-    @all_scrapped_maps = sanderus_maps
+    lazarova_maps = map_scrapping_lazarova
+    raremaps_maps = map_scrapping_raremaps
+    @all_scrapped_maps = sanderus_maps + raremaps_maps + lazarova_maps
+    # @all_scrapped_maps = sanderus_maps
   end
 
   private
@@ -14,12 +15,12 @@ class MapsController < ApplicationController
   def map_scrapping_sanderus
     # Uncomment once in production
     # url = "https://sanderusmaps.com/search?q_cat=&q_title=&q_keywords=&q_mapmaker=#{map_maker}&q_mapnum=&_gl=1*5yozj9*_up*MQ..*_ga*MTk4OTIxODY3OS4xNzAyNTg3MDU2*_ga_4GV6JSEDD8*MTcwMjU4NzA1NS4xLjEuMTcwMjU4NzMyNC4wLjAuMA.."
-    # page = @virtual_browser.get("https://sanderusmaps.com/search?q_cat=&q_title=&q_keywords=&q_mapmaker=Sebastian+M%C3%BCnster&q_mapnum=&_gl=1*1v82r1x*_up*MQ..*_ga*Mjk5NTQ4ODYuMTcwMjY0MzUzNg..*_ga_4GV6JSEDD8*MTcwMjY0MzUzNS4xLjEuMTcwMjY0MzUzOS4wLjAuMA..")
-    # document = Nokogiri::HTML(page.body)
+    page = @virtual_browser.get("https://sanderusmaps.com/search?q_cat=&q_title=&q_keywords=&q_mapmaker=Sebastian+M%C3%BCnster&q_mapnum=&_gl=1*1v82r1x*_up*MQ..*_ga*Mjk5NTQ4ODYuMTcwMjY0MzUzNg..*_ga_4GV6JSEDD8*MTcwMjY0MzUzNS4xLjEuMTcwMjY0MzUzOS4wLjAuMA..")
+    document = Nokogiri::HTML(page.body)
 
     # Local downloaded page scrapping (for dev purposes)
-    html_content = File.read('app/assets/pages_to_scrape/map.html')
-    document = Nokogiri::HTML(html_content)
+    # html_content = File.read('app/assets/pages_to_scrape/map.html')
+    # document = Nokogiri::HTML(html_content)
 
     document.css('.proditem').map do |map|
       {
@@ -59,10 +60,10 @@ class MapsController < ApplicationController
 
     document.css('.product').map do |map|
       {
-        map_show_page_link: "https://www.antikvariat-marketa-lazarova.cz#{document.css('.product .c309 a').attr('href').value}",
-        map_image_url: "https://www.antikvariat-marketa-lazarova.cz#{document.css('.product .c309 a img').attr('src').value}",
-        map_title: document.css('.product .c309 a').attr('title').value,
-        map_price: "KČ#{document.css('.product').attr('data-price').value}"
+        map_show_page_link: "https://www.antikvariat-marketa-lazarova.cz#{map.css('.c309 a').attr('href').value}",
+        map_image_url: "https://www.antikvariat-marketa-lazarova.cz#{map.css('.c309 a img').attr('src').value}",
+        map_title: map.css('.c309 a').attr('title').value,
+        map_price: "KČ#{map.attr('data-price')}"
       }
     end
   end

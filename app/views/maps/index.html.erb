@@ -4,7 +4,7 @@
   <div class="cards">
     <% @all_scrapped_maps.each do |map| %>
       <div class="card">
-        <div>
+        <div class="d-flex">
           <%= image_tag(map[:map_image_url], :class => "map-product-image-size") %>
         </div>
         <h4><%= map[:map_title].truncate(25) %></h4>
