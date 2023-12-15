@@ -1,12 +1,12 @@
 <h1>Hi dad! This is where you get to see your maps!</h1>
 
 <div>
-  <% @sanderus_maps.each do |map| %>
+  <% @all_scrapped_maps.each do |map| %>
     <div>
       <div><%= image_tag(map[:map_image_url]) %></div>
       <h2><%= map[:map_title] %></h2>
-      <h3>€<%= map[:map_price] %></h3>
-      <%= link_to 'See the map on the page of the antique shop.', map[:map_show_page_link] %>
+      <h3><%= map[:map_price] %></h3>
+      <%= link_to 'See the map on the page of the antique shop.', map[:map_show_page_link], target: "_blank" %>
     </div>
   <% end %>
 </div>
