@@ -1,12 +1,18 @@
-<h1>Hi dad! This is where you get to see your maps!</h1>
+<div class="container maps-container">
+  <h1>Hi dad! This is where you get to see your maps!</h1>
 
-<div>
-  <% @all_scrapped_maps.each do |map| %>
-    <div>
-      <div><%= image_tag(map[:map_image_url]) %></div>
-      <h2><%= map[:map_title] %></h2>
-      <h3><%= map[:map_price] %></h3>
-      <%= link_to 'See the map on the page of the antique shop.', map[:map_show_page_link], target: "_blank" %>
-    </div>
-  <% end %>
+  <div class="cards">
+    <% @all_scrapped_maps.each do |map| %>
+      <div class="card">
+        <div>
+          <%= image_tag(map[:map_image_url], :class => "map-product-image-size") %>
+        </div>
+        <h4><%= map[:map_title].truncate(25) %></h4>
+        <div class="d-flex justify-content-between align-items-center m-2">
+          <p><%= map[:map_price] %></p>
+          <%= link_to 'Shop now!', map[:map_show_page_link], target: "_blank", class: "btn btn-success w-50" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
 </div>

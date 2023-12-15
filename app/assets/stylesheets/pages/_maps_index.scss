@@ -1,0 +1,23 @@
+.maps-container {
+  .map-product-image-size {
+    width: 300px;
+    height: 200px;
+    object-fit: cover;
+    margin: 0.5rem;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  .card h4 {
+    margin: 0.5rem 0.5rem;
+  }
+
+  .card p {
+    font-weight: 700;
+    margin: 0;
+  }
+}
