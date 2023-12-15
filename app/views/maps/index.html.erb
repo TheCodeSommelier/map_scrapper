@@ -1,5 +1,5 @@
 <div class="container maps-container">
-  <h1>Hi dad! This is where you get to see your maps!</h1>
+  <h2>Hi dad! This is where you get to see the maps you can buy from Sanderus, Lazarova or Rudderman!</h2>
 
   <div class="cards">
     <% @all_scrapped_maps.each do |map| %>
@@ -10,7 +10,9 @@
         <h4><%= map[:map_title].truncate(25) %></h4>
         <div class="d-flex justify-content-between align-items-center m-2">
           <p><%= map[:map_price] %></p>
-          <%= link_to 'Shop now!', map[:map_show_page_link], target: "_blank", class: "btn btn-success w-50" %>
+          <%= link_to map[:map_show_page_link], target: "_blank", class: "secondary-button d-flex justify-content-center align-items-center" do %>
+            <i class="fa-solid fa-cart-shopping"></i>
+          <% end %>
         </div>
       </div>
     <% end %>

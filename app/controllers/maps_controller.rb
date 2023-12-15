@@ -19,8 +19,8 @@ class MapsController < ApplicationController
     document = Nokogiri::HTML(page.body)
 
     # Local downloaded page scrapping (for dev purposes)
-    # html_content = File.read('app/assets/pages_to_scrape/map.html')
-    # document = Nokogiri::HTML(html_content)
+    html_content = File.read('app/assets/pages_to_scrape/map.html')
+    document = Nokogiri::HTML(html_content)
 
     document.css('.proditem').map do |map|
       {
@@ -60,10 +60,10 @@ class MapsController < ApplicationController
 
     document.css('.product').map do |map|
       {
-        map_show_page_link: "https://www.antikvariat-marketa-lazarova.cz#{map.css('.c309 a').attr('href').value}",
-        map_image_url: "https://www.antikvariat-marketa-lazarova.cz#{map.css('.c309 a img').attr('src').value}",
-        map_title: map.css('.c309 a').attr('title').value,
-        map_price: "KČ#{map.attr('data-price')}"
+        map_show_page_link: "https://www.antikvariat-marketa-lazarova.cz#{document.css('.product .c309 a').attr('href').value}",
+        map_image_url: "https://www.antikvariat-marketa-lazarova.cz#{document.css('.product .c309 a img').attr('src').value}",
+        map_title: document.css('.product .c309 a').attr('title').value,
+        map_price: "KČ#{document.css('.product').attr('data-price').value}"
       }
     end
   end
