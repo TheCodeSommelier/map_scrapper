@@ -1,6 +1,8 @@
 class MapsController < ApplicationController
   def index
-    map_maker = "Sebastian Münster"
+    return unless params[:query].present?
+
+    map_maker = params[:query]
     @virtual_browser = Mechanize.new
     s_maps = map_scrapping_s(map_maker)
     r_maps = map_scrapping_r(map_maker)
@@ -11,7 +13,7 @@ class MapsController < ApplicationController
   private
 
   # !!! Antique e-shop "S" !!!
-  # Builds out a hash for each map to be displayed on the idex from the sanderusmaps.com web page
+  # Makes opens the S website
   def map_scrapping_s(map_maker)
     array_of_maps = []
     s_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_S')}#{URI.encode_www_form_component(map_maker)}",
@@ -25,7 +27,7 @@ class MapsController < ApplicationController
     array_of_maps
   end
 
-  # Gets pages from  the Sanderus website
+  # Gets pages from the S website
   def pagification_sanderus(html_document)
     array_of_pages = []
     html_document.css("li a").each do |list_item|
@@ -34,7 +36,7 @@ class MapsController < ApplicationController
     array_of_pages.uniq
   end
 
-  # Builds the hash for the map from Sanderus page
+  # Builds the hash for the map from S maps with the attributes of antique maps
   def s_map_hash_builder(html_document)
     html_document.css('.proditem').map do |map|
       {
@@ -47,12 +49,14 @@ class MapsController < ApplicationController
   end
 
   # !!! Antique e-shop "R" !!!
+  # Opens the R website
   def map_scrapping_r(map_maker)
     r_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{URI.encode_www_form_component(map_maker)}",
                                   { headers: { "User-Agent" => user_agent_picker } })
     r_map_hash_builder(Nokogiri::HTML(r_page.body))
   end
 
+  #
   def r_map_hash_builder(html_document)
     html_document.css('.item.card').map do |map|
       {
