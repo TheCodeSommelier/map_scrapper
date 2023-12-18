@@ -16,15 +16,11 @@ class MapsController < ApplicationController
   # Makes opens the S website
   def map_scrapping_s(map_maker)
     array_of_maps = []
-    s_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_S')}#{URI.encode_www_form_component(map_maker)}",
+    s_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_S')}#{map_maker}",
                                   { headers: { "User-Agent" => user_agent_picker } })
     pages_urls = pagification_sanderus(Nokogiri::HTML(s_page.body))
-    pages_urls.each do |page_url|
-      maps_index_page_html = @virtual_browser.get(page_url,
-                                                  { headers: { "User-Agent" => user_agent_picker } })
-      array_of_maps += s_map_hash_builder(Nokogiri::HTML(maps_index_page_html.body))
-    end
-    array_of_maps
+
+    array_of_maps + crawling_pages(pages_urls)
   end
 
   # Gets pages from the S website
@@ -34,6 +30,19 @@ class MapsController < ApplicationController
       array_of_pages << list_item['href'] if list_item.text.match(/\d{1}/) && list_item.attr("class") != "cart"
     end
     array_of_pages.uniq
+  end
+
+  # Method that takes the urls and switches between pages of maps if more than 1
+  def crawling_pages(pages_urls)
+    if pages_urls.length > 1
+      pages_urls.each do |page_url|
+        maps_index_page_html = @virtual_browser.get(page_url, { headers: { "User-Agent" => user_agent_picker } })
+        s_map_hash_builder(Nokogiri::HTML(maps_index_page_html.body))
+      end
+    else
+      maps_index_page_html = @virtual_browser.get(pages_urls[0], { headers: { "User-Agent" => user_agent_picker } })
+      s_map_hash_builder(Nokogiri::HTML(maps_index_page_html.body))
+    end
   end
 
   # Builds the hash for the map from S maps with the attributes of antique maps
@@ -51,7 +60,7 @@ class MapsController < ApplicationController
   # !!! Antique e-shop "R" !!!
   # Opens the R website
   def map_scrapping_r(map_maker)
-    r_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{URI.encode_www_form_component(map_maker)}",
+    r_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{map_maker}",
                                   { headers: { "User-Agent" => user_agent_picker } })
     r_map_hash_builder(Nokogiri::HTML(r_page.body))
   end
@@ -70,7 +79,7 @@ class MapsController < ApplicationController
 
   # !!! antique e-shop "L" !!!
   def map_scrapping_l(map_maker)
-    l_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_L')}#{URI.encode_www_form_component(map_maker)}",
+    l_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_L')}#{map_maker}",
                                   { headers: { "User-Agent" => user_agent_picker } })
     l_map_hash_builder(Nokogiri::HTML(l_page.body))
   end
