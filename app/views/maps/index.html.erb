@@ -1,20 +1,41 @@
 <div class="container maps-container">
-  <h2>Hi dad! This is where you get to see the maps you can buy from Sanderus, Lazarova or Rudderman!</h2>
 
-  <div class="cards">
-    <% @all_scrapped_maps.each do |map| %>
-      <div class="card">
-        <div class="d-flex">
-          <%= image_tag(map[:map_image_url], :class => "map-product-image-size") %>
-        </div>
-        <h4><%= map[:map_title].truncate(25) %></h4>
-        <div class="d-flex justify-content-between align-items-center m-2">
-          <p><%= map[:map_price] %></p>
-          <%= link_to map[:map_show_page_link], target: "_blank", class: "secondary-button d-flex justify-content-center align-items-center" do %>
-            <i class="fa-solid fa-cart-shopping"></i>
-          <% end %>
-        </div>
-      </div>
-    <% end %>
+  <div class="row justify-content-center">
+    <div class="page-title-position">
+      <h2 class="text-center">Hi dad! This is where you get to see the maps you can buy from Sanderus, Lazarova or Rudderman!</h2>
+    </div>
+    <div class="col-sm-8 my-3">
+      <%= form_with url: root_path, method: :get, class: "d-flex" do %>
+        <%= text_field_tag :query,
+              params[:query],
+              class: "search-bar",
+              placeholder: "Search for a map maker..."
+          %>
+        <%= submit_tag "Search", name: "", class: "primary-button" %>
+      <% end %>
+    </div>
   </div>
+
+  <% if params[:query].present? %>
+    <div class="cards">
+      <% @all_scrapped_maps.each do |map| %>
+        <div class="card">
+          <div class="d-flex">
+            <%= image_tag(map[:map_image_url], :class => "map-product-image-size") %>
+          </div>
+          <h4><%= map[:map_title].truncate(25) %></h4>
+          <div class="d-flex justify-content-between align-items-center m-2">
+            <p><%= map[:map_price] %></p>
+            <%= link_to map[:map_show_page_link], target: "_blank", class: "secondary-button d-flex justify-content-center align-items-center" do %>
+              <i class="fa-solid fa-cart-shopping"></i>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="no-search-title-margin">
+      <h2 class="text-center">Search for your favourite map maker! 😁</h2>
+    </div>
+  <% end %>
 </div>
