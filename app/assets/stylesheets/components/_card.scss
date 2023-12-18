@@ -1,0 +1,15 @@
+.card {
+  border-radius: 5px;
+  background-color: $light-beige;
+  border: 1px solid $light-beige;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+}
+
+.card h4 {
+  margin: 0.5rem 0.5rem;
+}
+
+.card p {
+  font-weight: 700;
+  margin: 0;
+}
