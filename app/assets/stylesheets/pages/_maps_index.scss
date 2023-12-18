@@ -1,7 +1,7 @@
 .maps-container {
   .page-title-position {
     width: 80%;
-    margin: 15px auto;
+    margin: 30px auto 15px;
   }
 
   .no-search-title-margin {
@@ -27,5 +27,9 @@
   .secondary-button {
     width: 40px;
     height: 40px;
+  }
+
+  .search-button-size {
+    padding: 0 25px;
   }
 }
