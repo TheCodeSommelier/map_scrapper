@@ -6,10 +6,11 @@ class MapsController < ApplicationController
 
     map_maker = params[:query]
     @virtual_browser = Mechanize.new
-    s_maps = map_scrapping_s(map_maker)
+    # s_maps = map_scrapping_s(map_maker)
     r_maps = map_scrapping_r(map_maker)
-    l_maps = map_scrapping_l(map_maker)
-    @all_scrapped_maps = r_maps + s_maps + l_maps
+    # l_maps = map_scrapping_l(map_maker)
+    # @all_scrapped_maps = r_maps + s_maps + l_maps
+    @all_scrapped_maps = r_maps
   end
 
   private
@@ -65,12 +66,26 @@ class MapsController < ApplicationController
   def map_scrapping_r(map_maker)
     r_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{map_maker}",
                                   { headers: { "User-Agent" => user_agent_picker } })
-    r_map_hash_builder(Nokogiri::HTML(r_page.body))
+    r_html_document = Nokogiri::HTML(r_page.body)
+    crawler_r(map_maker, r_html_document)
+  end
+
+  def crawler_r(map_maker, r_html_document)
+    array_of_r_maps = []
+    url_endpoints = r_html_document.css("ul.pager li a").map do |a_tag|
+      a_tag.attr('href').slice(/&order_by=([^&]+)&relevance=([^&]+)&page=([^&]+)/)
+    end
+    url_endpoints.uniq.each do |url_enpoint|
+      page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{map_maker}#{url_enpoint}",
+                                  { headers: { "User-Agent" => user_agent_picker } })
+      array_of_r_maps += r_map_hash_builder(Nokogiri::HTML(page.body))
+    end
+    array_of_r_maps
   end
 
   # Hash builder for maps from "R" website
-  def r_map_hash_builder(html_document)
-    html_document.css('.item.card').map do |map|
+  def r_map_hash_builder(r_html_document)
+    r_html_document.css('.item.card').map do |map|
       {
         map_show_page_link: "#{ENV.fetch('BASE_URL_R_MAP_SHOW_PAGE')}#{map.css('.image').children[1]['href']}",
         map_image_url: map.css('.image').children[1].children[1]['src'],
