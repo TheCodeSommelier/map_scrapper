@@ -1,0 +1,4 @@
+scraping:
+  cron: "*/1 * * * * *"
+  class: "ScraperWorker"
+  queue: scraper_worker
