@@ -10,7 +10,6 @@ class MapsController < ApplicationController
     r_maps = map_scrapping_r(map_maker)
     l_maps = map_scrapping_l(map_maker)
     @all_scrapped_maps = r_maps + s_maps + l_maps
-    # @all_scrapped_maps = r_maps
   end
 
   private
