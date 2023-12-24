@@ -7,9 +7,10 @@ class MapsController < ApplicationController
     map_maker = params[:query]
     @virtual_browser = Mechanize.new
     s_maps = map_scrapping_s(map_maker)
-    r_maps = map_scrapping_r(map_maker)
-    l_maps = map_scrapping_l(map_maker)
-    @all_scrapped_maps = r_maps + s_maps + l_maps
+    # r_maps = map_scrapping_r(map_maker)
+    # l_maps = map_scrapping_l(map_maker)
+    # @all_scrapped_maps = r_maps + s_maps + l_maps
+    @all_scrapped_maps = s_maps
   end
 
   private
@@ -20,7 +21,7 @@ class MapsController < ApplicationController
     s_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_S')}#{map_maker}",
                                   { headers: { "User-Agent" => user_agent_picker } })
     pages_urls = pagification_s(Nokogiri::HTML(s_page.body))
-    crawling_pages(pages_urls)
+    crawling_pages(pages_urls, map_maker)
   end
 
   # Gets pages from the S website
@@ -34,29 +35,30 @@ class MapsController < ApplicationController
 
   # Method that takes the urls and switches between pages of maps if more than 1
   # TODO: Refactor this method
-  def crawling_pages(pages_urls)
+  def crawling_pages(pages_urls, map_maker)
     array_of_maps = []
     if pages_urls.length > 1
       pages_urls.each do |page_url|
         maps_index_page_html = @virtual_browser.get(page_url, { headers: { "User-Agent" => user_agent_picker } })
-        array_of_maps += s_map_hash_builder(Nokogiri::HTML(maps_index_page_html.body))
+        array_of_maps += s_map_instance_builder(Nokogiri::HTML(maps_index_page_html.body), map_maker)
       end
     else
       maps_index_page_html = @virtual_browser.get(pages_urls[0], { headers: { "User-Agent" => user_agent_picker } })
-      array_of_maps += s_map_hash_builder(Nokogiri::HTML(maps_index_page_html.body))
+      array_of_maps += s_map_instance_builder(Nokogiri::HTML(maps_index_page_html.body), map_maker)
     end
     array_of_maps
   end
 
   # Builds the hash for the map from S maps with the attributes of antique maps
-  def s_map_hash_builder(html_document)
+  def s_map_instance_builder(html_document, map_maker)
     html_document.css('.proditem').map do |map|
-      {
+      Map.create(
+        title: map.css('.blue.breakup').text,
+        price: map.css('.euro').text,
         map_show_page_link: map['href'],
-        map_image_url: map.css('.img').children[1].children[1].values[-1],
-        map_title: map.css('.blue.breakup').text,
-        map_price: map.css('.euro').text
-      }
+        image_url: map.css('.img').children[1].children[1].values[-1],
+        map_maker: map_maker
+      )
     end
   end
 
@@ -66,10 +68,10 @@ class MapsController < ApplicationController
     r_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{map_maker}",
                                   { headers: { "User-Agent" => user_agent_picker } })
     r_html_document = Nokogiri::HTML(r_page.body)
-    crawler_r(map_maker, r_html_document)
+    crawler_r(r_html_document, map_maker)
   end
 
-  def crawler_r(map_maker, r_html_document)
+  def crawler_r(r_html_document, map_maker)
     array_of_r_maps = []
     url_endpoints = r_html_document.css("ul.pager li a").map do |a_tag|
       a_tag.attr('href').slice(/&order_by=([^&]+)&relevance=([^&]+)&page=([^&]+)/)
