@@ -21,12 +21,12 @@
       <% @all_scrapped_maps.each do |map| %>
         <div class="card">
           <div class="d-flex">
-            <%= image_tag(map[:map_image_url], :class => "map-product-image-size") %>
+            <%= image_tag(map.image_url, :class => "map-product-image-size") %>
           </div>
-          <h4><%= map[:map_title].truncate(25) %></h4>
+          <h4><%= map.title.truncate(25) %></h4>
           <div class="d-flex justify-content-between align-items-center m-2">
-            <p><%= map[:map_price] %></p>
-            <%= link_to map[:map_show_page_link], target: "_blank", class: "secondary-button d-flex justify-content-center align-items-center" do %>
+            <p><%= map.price %></p>
+            <%= link_to map.map_show_page_link, target: "_blank", class: "secondary-button d-flex justify-content-center align-items-center" do %>
               <i class="fa-solid fa-cart-shopping"></i>
             <% end %>
           </div>

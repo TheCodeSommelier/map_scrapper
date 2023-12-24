@@ -1,18 +1,15 @@
-# TODO: Add pagification crawler to all of the sites
+class ScraperWorker
+  include Sidekiq::Worker
 
-class MapsController < ApplicationController
-  def index
-    return unless params[:query].present?
-
-    map_maker = params[:query]
-    if Author.where(name: map_maker).empty?
-      Author.create(name: map_maker)
-      @virtual_browser = Mechanize.new
-      map_scrapping_s(map_maker)
-      map_scrapping_r(map_maker)
-      map_scrapping_l(map_maker)
+  def perform
+    Map.destroy_all
+    @virtual_browser = Mechanize.new
+    @dad = User.find(2)
+    Author.all.each do |author|
+      map_scrapping_s(author.name)
+      map_scrapping_r(author.name)
+      map_scrapping_l(author.name)
     end
-    @all_scrapped_maps = Map.where(map_maker: map_maker)
   end
 
   private
@@ -52,7 +49,7 @@ class MapsController < ApplicationController
         map_show_page_link: map['href'],
         image_url: map.css('.img').children[1].children[1].values[-1],
         map_maker: map_maker,
-        user: current_user
+        user: @dad
       )
     end
   end
@@ -87,7 +84,7 @@ class MapsController < ApplicationController
         map_show_page_link: "#{ENV.fetch('BASE_URL_R_MAP_SHOW_PAGE')}#{map.css('.image').children[1]['href']}",
         image_url: map.css('.image').children[1].children[1]['src'],
         map_maker: map_maker,
-        user: current_user
+        user: @dad
       )
     end
   end
@@ -108,7 +105,7 @@ class MapsController < ApplicationController
         map_show_page_link: "#{ENV.fetch('BASE_URL_L_MAP_SHOW_PAGE_AND_PIC')}#{map.css('.c309 a').attr('href').value}",
         image_url: "#{ENV.fetch('BASE_URL_L_MAP_SHOW_PAGE_AND_PIC')}#{map.css('.c309 a img').attr('src').value}",
         map_maker: map_maker,
-        user: current_user
+        user: @dad
       )
     end
   end
