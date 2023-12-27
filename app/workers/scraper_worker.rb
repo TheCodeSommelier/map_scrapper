@@ -10,6 +10,8 @@ class ScraperWorker
       map_scrapping_r(author.name)
       map_scrapping_l(author.name)
     end
+    load_yaml_with_random_time
+    load_schedule_from_yaml
   end
 
   private
@@ -114,5 +116,28 @@ class ScraperWorker
   def user_agent_picker
     user_agents = File.readlines("user_agents.txt", chomp: true)
     user_agents.sample
+  end
+
+  # Loads the schedule.yml file and updates the scraping time in the yml file
+  def load_yaml_with_random_time
+    config_file_path = Rails.root.join('config', 'schedule.yml')
+    config_data = YAML.load_file(config_file_path)
+
+    config_data['scraping']['cron'] = "*/#{rand(1..10)} * * * *"
+    # config_data['scraping']['cron'] = "*/#{rand(0..59)} */#{rand(8..19)} * * */#{rand(1..7)}" # Uncomment in production
+    File.write(config_file_path, config_data.to_yaml) { |file| file.write(config_data.to_yaml) }
+  end
+
+  # Reads the schedule.yml file upon every perform function
+  def load_schedule_from_yaml
+    schedule_file_path = Rails.root.join('config', 'schedule.yml')
+
+    if File.exist?(schedule_file_path)
+      schedule = YAML.load_file(schedule_file_path)
+      Sidekiq::Cron::Job.load_from_hash!(schedule, source: 'schedule')
+      puts "Schedule loaded at #{Time.now}"
+    else
+      puts "No schedule file found at #{schedule_file_path}"
+    end
   end
 end
