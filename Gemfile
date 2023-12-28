@@ -47,6 +47,9 @@ gem "sidekiq"
 gem "sidekiq-failures"
 gem 'sidekiq-cron'
 
+# Allows the maps to be paginated on the index page
+gem 'kaminari'
+
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
 

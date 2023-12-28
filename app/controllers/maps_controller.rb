@@ -12,7 +12,8 @@ class MapsController < ApplicationController
       map_scrapping_r(map_maker)
       map_scrapping_l(map_maker)
     end
-    @all_scrapped_maps = Map.where(map_maker: map_maker)
+    @all_scrapped_maps = Map.where(map_maker: map_maker).order(created_at: :desc).page(params[:page])
+    # @all_scrapped_maps = Map.page(params[:page])
   end
 
   private
