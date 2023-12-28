@@ -4,7 +4,7 @@
     <div class="page-title-position">
       <h1 class="text-center">Hi, Dad! This is where you get to see the maps you can buy from Sanderus, Lazarova, or Rudderman!</h1>
     </div>
-    <div class="col-sm-8 my-3">
+    <div class="col-sm-8 search-bar-margin">
       <%= form_with url: root_path, method: :get, class: "d-flex" do %>
         <%= text_field_tag :query,
               params[:query],
@@ -33,7 +33,7 @@
         </div>
       <% end %>
     </div>
-    <div>
+    <div class="pagination-center">
       <%= paginate @all_scrapped_maps %>
     </div>
   <% else %>
