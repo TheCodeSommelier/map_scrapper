@@ -1,5 +1,5 @@
 ---
 scraping:
-  cron: "*/5 * * * *"
+  cron: "*/7 * * * *"
   class: ScraperWorker
   queue: default
