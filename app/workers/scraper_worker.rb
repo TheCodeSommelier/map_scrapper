@@ -132,12 +132,9 @@ class ScraperWorker
   def load_schedule_from_yaml
     schedule_file_path = Rails.root.join('config', 'schedule.yml')
 
-    if File.exist?(schedule_file_path)
-      schedule = YAML.load_file(schedule_file_path)
-      Sidekiq::Cron::Job.load_from_hash!(schedule, source: 'schedule')
-      puts "Schedule loaded at #{Time.now}"
-    else
-      puts "No schedule file found at #{schedule_file_path}"
-    end
+    return unless File.exist?(schedule_file_path)
+
+    schedule = YAML.load_file(schedule_file_path)
+    Sidekiq::Cron::Job.load_from_hash!(schedule, source: 'schedule')
   end
 end

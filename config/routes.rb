@@ -10,11 +10,9 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   root "maps#index"
 
-  Rails.application.routes.draw do
-    # Sidekiq Web UI, only for admins.
+  # Sidekiq Web UI, only for admins.
+  authenticate :user, ->(user) { user.admin? } do
     require "sidekiq/web"
-    authenticate :user, ->(user) { user.admin? } do
-      mount Sidekiq::Web => '/sidekiq'
-    end
+    mount Sidekiq::Web => '/sidekiq'
   end
 end
