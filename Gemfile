@@ -41,11 +41,16 @@ gem "tzinfo-data", platforms: %i[windows jruby]
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
+# Allows scraping and crawling
 gem 'mechanize'
 
+# Allows for background jobs
 gem "sidekiq"
 gem "sidekiq-failures"
-gem 'sidekiq-cron'
+gem "sidekiq-cron"
+
+# Allows to save records in batches
+gem "activerecord-import"
 
 # Allows the maps to be paginated on the index page
 gem 'kaminari'

@@ -2,13 +2,11 @@ class ScraperWorker
   include Sidekiq::Worker
 
   def perform
-    Map.destroy_all
     @virtual_browser = Mechanize.new
-    @dad = User.where(email: "masek@masekadvokati.cz").first
     Author.all.each do |author|
       map_scrapping_s(author.name)
-      map_scrapping_r(author.name)
-      map_scrapping_l(author.name)
+      # map_scrapping_r(author.name)
+      # map_scrapping_l(author.name)
     end
     load_yaml_with_random_time
     load_schedule_from_yaml
@@ -35,24 +33,35 @@ class ScraperWorker
 
   # Iterates through pages and collects maps from Antique e-shop "S"
   def crawling_pages(pages_urls, map_maker)
-    array_of_maps = pages_urls.map do |page_url|
+    array_of_maps = pages_urls.flat_map do |page_url|
       maps_index_page_html = @virtual_browser.get(page_url, { headers: { "User-Agent" => user_agent_picker } })
       s_map_instance_builder(Nokogiri::HTML(maps_index_page_html.body), map_maker)
     end
-    array_of_maps.flatten
+
+    Map.import(
+      array_of_maps, on_duplicate_key_update: {
+        conflict_target: [:title],
+        columns: %i[
+          price
+          map_show_page_link
+          image_url
+          map_maker
+        ]
+      }
+    )
+    array_of_maps
   end
 
   # Builds instances of maps from Antique e-shop "S" with attributes of antique maps
   def s_map_instance_builder(html_document, map_maker)
     html_document.css('.proditem').map do |map|
-      Map.create(
+      {
         title: map.css('.blue.breakup').text,
         price: map.css('.euro').text,
         map_show_page_link: map['href'],
         image_url: map.css('.img').children[1].children[1].values[-1],
         map_maker: map_maker,
-        user: @dad
-      )
+      }
     end
   end
 
@@ -123,7 +132,9 @@ class ScraperWorker
     config_file_path = Rails.root.join('config', 'schedule.yml')
     config_data = YAML.load_file(config_file_path)
 
-    config_data['scraping']['cron'] = "*/#{rand(0..59)} */#{rand(8..19)} * * */#{rand(1..7)}" # Uncomment in production
+    config_data['scraping']['cron'] = "*/#{rand(1..10)} * * * *}" # Uncomment in production
+
+    # config_data['scraping']['cron'] = "*/#{rand(0..59)} */#{rand(8..19)} * * */#{rand(1..7)}" # Uncomment in production
     File.write(config_file_path, config_data.to_yaml) { |file| file.write(config_data.to_yaml) }
   end
 

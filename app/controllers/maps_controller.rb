@@ -6,14 +6,13 @@ class MapsController < ApplicationController
 
     map_maker = params[:query]
     if Author.where(name: map_maker).empty?
-      Author.create(name: map_maker)
+      # Author.create(name: map_maker)
       @virtual_browser = Mechanize.new
       map_scrapping_s(map_maker)
-      map_scrapping_r(map_maker)
-      map_scrapping_l(map_maker)
+      # map_scrapping_r(map_maker)
+      # map_scrapping_l(map_maker)
     end
     @all_scrapped_maps = Map.where(map_maker: map_maker).order(created_at: :desc).page(params[:page])
-    # @all_scrapped_maps = Map.page(params[:page])
   end
 
   private
@@ -37,23 +36,26 @@ class MapsController < ApplicationController
 
   # Iterates through pages and collects maps from Antique e-shop "S"
   def crawling_pages(pages_urls, map_maker)
-    array_of_maps = pages_urls.map do |page_url|
+    array_of_maps = pages_urls.flat_map do |page_url|
       maps_index_page_html = @virtual_browser.get(page_url, { headers: { "User-Agent" => user_agent_picker } })
       s_map_instance_builder(Nokogiri::HTML(maps_index_page_html.body), map_maker)
     end
-    array_of_maps.flatten
+
+    map_columns = %i[title price map_show_page_link image_url map_maker]
+    Map.import(map_columns, array_of_maps, batch_size: 20)
+
+    array_of_maps
   end
 
   # Builds instances of maps from Antique e-shop "S" with attributes of antique maps
   def s_map_instance_builder(html_document, map_maker)
     html_document.css('.proditem').map do |map|
-      Map.create(
+      Map.new(
         title: map.css('.blue.breakup').text,
         price: map.css('.euro').text,
         map_show_page_link: map['href'],
         image_url: map.css('.img').children[1].children[1].values[-1],
-        map_maker: map_maker,
-        user: current_user
+        map_maker: map_maker
       )
     end
   end

@@ -1,6 +1,4 @@
 class User < ApplicationRecord
-  has_many :maps
-
   validates :email, presence: true, uniqueness: true
   validates :password, presence: true
 
