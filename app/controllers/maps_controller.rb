@@ -4,14 +4,14 @@ class MapsController < ApplicationController
   def index
     return unless params[:query].present?
 
+    @virtual_browser = Mechanize.new
     map_maker = params[:query]
     @map_columns = %i[title price map_show_page_link image_url map_maker]
     if Author.where(name: map_maker).empty?
       Author.create(name: map_maker)
-      @virtual_browser = Mechanize.new
       map_scrapping_s(map_maker)
       map_scrapping_r(map_maker)
-      # map_scrapping_l(map_maker)
+      map_scrapping_l(map_maker)
     end
     @all_scrapped_maps = Map.where(map_maker: map_maker).order(created_at: :desc).page(params[:page])
   end
@@ -98,13 +98,14 @@ class MapsController < ApplicationController
   def map_scrapping_l(map_maker)
     l_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_L')}#{map_maker}",
                                   { headers: { "User-Agent" => user_agent_picker } })
-    l_map_instance_builder(Nokogiri::HTML(l_page.body), map_maker)
+    array_of_maps = l_map_instance_builder(Nokogiri::HTML(l_page.body), map_maker)
+    Map.import(@map_columns, array_of_maps, batch_size: 20)
   end
 
   # Builds instances of maps from Antique e-shop "L" with attributes of antique maps
   def l_map_instance_builder(html_document, map_maker)
     html_document.css('.product').map do |map|
-      Map.create(
+      Map.new(
         title: map.css('.c309 a').attr('title').value,
         price: "KČ#{map.attr('data-price')}",
         map_show_page_link: "#{ENV.fetch('BASE_URL_L_MAP_SHOW_PAGE_AND_PIC')}#{map.css('.c309 a').attr('href').value}",
