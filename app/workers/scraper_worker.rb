@@ -123,8 +123,7 @@ class ScraperWorker
     config_file_path = Rails.root.join('config', 'schedule.yml')
     config_data = YAML.load_file(config_file_path)
 
-    config_data['scraping']['cron'] = "*/#{rand(1..10)} * * * *"
-    # config_data['scraping']['cron'] = "*/#{rand(0..59)} */#{rand(8..19)} * * */#{rand(1..7)}" # Uncomment in production
+    config_data['scraping']['cron'] = "*/#{rand(0..59)} */#{rand(8..19)} * * */#{rand(1..7)}" # Uncomment in production
     File.write(config_file_path, config_data.to_yaml) { |file| file.write(config_data.to_yaml) }
   end
 
