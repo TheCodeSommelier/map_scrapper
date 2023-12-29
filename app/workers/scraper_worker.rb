@@ -4,7 +4,7 @@ class ScraperWorker
   def perform
     Map.destroy_all
     @virtual_browser = Mechanize.new
-    @dad = User.find(2)
+    @dad = User.where(email: "masek@masekadvokati.cz").first
     Author.all.each do |author|
       map_scrapping_s(author.name)
       map_scrapping_r(author.name)
