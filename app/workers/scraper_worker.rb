@@ -4,7 +4,7 @@ class ScraperWorker
   def perform
     Map.destroy_all
     @virtual_browser = Mechanize.new
-    @dad = User.where(email: "masek@masekadvokati.cz").first
+    @map_columns = %i[title price map_show_page_link image_url map_maker]
     Author.all.each do |author|
       map_scrapping_s(author.name)
       map_scrapping_r(author.name)
@@ -35,23 +35,23 @@ class ScraperWorker
 
   # Iterates through pages and collects maps from Antique e-shop "S"
   def crawling_pages(pages_urls, map_maker)
-    array_of_maps = pages_urls.map do |page_url|
+    array_of_maps = pages_urls.flat_map do |page_url|
       maps_index_page_html = @virtual_browser.get(page_url, { headers: { "User-Agent" => user_agent_picker } })
       s_map_instance_builder(Nokogiri::HTML(maps_index_page_html.body), map_maker)
     end
-    array_of_maps.flatten
+
+    Map.import(array_of_maps, @map_columns, batch_size: 20)
   end
 
   # Builds instances of maps from Antique e-shop "S" with attributes of antique maps
   def s_map_instance_builder(html_document, map_maker)
     html_document.css('.proditem').map do |map|
-      Map.create(
+      Map.new(
         title: map.css('.blue.breakup').text,
         price: map.css('.euro').text,
         map_show_page_link: map['href'],
         image_url: map.css('.img').children[1].children[1].values[-1],
-        map_maker: map_maker,
-        user: @dad
+        map_maker: map_maker
       )
     end
   end
@@ -70,23 +70,24 @@ class ScraperWorker
       a_tag.attr('href').slice(/&order_by=([^&]+)&relevance=([^&]+)&page=([^&]+)/)
     end
 
-    url_endpoints.uniq.flat_map do |url_enpoint|
+    array_of_maps = url_endpoints.uniq.flat_map do |url_enpoint|
       page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{map_maker}#{url_enpoint}",
                                   { headers: { "User-Agent" => user_agent_picker } })
       r_map_instance_builder(Nokogiri::HTML(page.body), map_maker)
     end
+
+    Map.import(@map_columns, array_of_maps, batch_size: 20)
   end
 
   # Builds instances of maps from Antique e-shop "R" with attributes of antique maps
   def r_map_instance_builder(r_html_document, map_maker)
     r_html_document.css('.item.card').map do |map|
-      Map.create(
+      Map.new(
         title: map.css('.info').children[1].css('.title').text.strip,
         price: map.css('aside').children[1].text.strip.tr(" ", ""),
         map_show_page_link: "#{ENV.fetch('BASE_URL_R_MAP_SHOW_PAGE')}#{map.css('.image').children[1]['href']}",
         image_url: map.css('.image').children[1].children[1]['src'],
-        map_maker: map_maker,
-        user: @dad
+        map_maker: map_maker
       )
     end
   end
@@ -95,19 +96,19 @@ class ScraperWorker
   def map_scrapping_l(map_maker)
     l_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_L')}#{map_maker}",
                                   { headers: { "User-Agent" => user_agent_picker } })
-    l_map_instance_builder(Nokogiri::HTML(l_page.body), map_maker)
+    array_of_maps = l_map_instance_builder(Nokogiri::HTML(l_page.body), map_maker)
+    Map.import(@map_columns, array_of_maps, batch_size: 20)
   end
 
   # Builds instances of maps from Antique e-shop "L" with attributes of antique maps
   def l_map_instance_builder(html_document, map_maker)
     html_document.css('.product').map do |map|
-      Map.create(
+      Map.new(
         title: map.css('.c309 a').attr('title').value,
         price: "KČ#{map.attr('data-price')}",
         map_show_page_link: "#{ENV.fetch('BASE_URL_L_MAP_SHOW_PAGE_AND_PIC')}#{map.css('.c309 a').attr('href').value}",
         image_url: "#{ENV.fetch('BASE_URL_L_MAP_SHOW_PAGE_AND_PIC')}#{map.css('.c309 a img').attr('src').value}",
-        map_maker: map_maker,
-        user: @dad
+        map_maker: map_maker
       )
     end
   end
@@ -123,7 +124,9 @@ class ScraperWorker
     config_file_path = Rails.root.join('config', 'schedule.yml')
     config_data = YAML.load_file(config_file_path)
 
-    config_data['scraping']['cron'] = "*/#{rand(0..59)} */#{rand(8..19)} * * */#{rand(1..7)}" # Uncomment in production
+    config_data['scraping']['cron'] = "*/#{rand(1..10)} * * * *}" # Uncomment in production
+
+    # config_data['scraping']['cron'] = "*/#{rand(0..59)} */#{rand(8..19)} * * */#{rand(1..7)}" # Uncomment in production
     File.write(config_file_path, config_data.to_yaml) { |file| file.write(config_data.to_yaml) }
   end
 

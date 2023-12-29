@@ -4,16 +4,16 @@ class MapsController < ApplicationController
   def index
     return unless params[:query].present?
 
+    @virtual_browser = Mechanize.new
     map_maker = params[:query]
+    @map_columns = %i[title price map_show_page_link image_url map_maker]
     if Author.where(name: map_maker).empty?
       Author.create(name: map_maker)
-      @virtual_browser = Mechanize.new
       map_scrapping_s(map_maker)
       map_scrapping_r(map_maker)
       map_scrapping_l(map_maker)
     end
     @all_scrapped_maps = Map.where(map_maker: map_maker).order(created_at: :desc).page(params[:page])
-    # @all_scrapped_maps = Map.page(params[:page])
   end
 
   private
@@ -37,23 +37,23 @@ class MapsController < ApplicationController
 
   # Iterates through pages and collects maps from Antique e-shop "S"
   def crawling_pages(pages_urls, map_maker)
-    array_of_maps = pages_urls.map do |page_url|
+    array_of_maps = pages_urls.flat_map do |page_url|
       maps_index_page_html = @virtual_browser.get(page_url, { headers: { "User-Agent" => user_agent_picker } })
       s_map_instance_builder(Nokogiri::HTML(maps_index_page_html.body), map_maker)
     end
-    array_of_maps.flatten
+
+    Map.import(@map_columns, array_of_maps, batch_size: 20)
   end
 
   # Builds instances of maps from Antique e-shop "S" with attributes of antique maps
   def s_map_instance_builder(html_document, map_maker)
     html_document.css('.proditem').map do |map|
-      Map.create(
+      Map.new(
         title: map.css('.blue.breakup').text,
         price: map.css('.euro').text,
         map_show_page_link: map['href'],
         image_url: map.css('.img').children[1].children[1].values[-1],
-        map_maker: map_maker,
-        user: current_user
+        map_maker: map_maker
       )
     end
   end
@@ -72,23 +72,24 @@ class MapsController < ApplicationController
       a_tag.attr('href').slice(/&order_by=([^&]+)&relevance=([^&]+)&page=([^&]+)/)
     end
 
-    url_endpoints.uniq.flat_map do |url_enpoint|
+    array_of_maps = url_endpoints.uniq.flat_map do |url_enpoint|
       page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{map_maker}#{url_enpoint}",
                                   { headers: { "User-Agent" => user_agent_picker } })
       r_map_instance_builder(Nokogiri::HTML(page.body), map_maker)
     end
+
+    Map.import(@map_columns, array_of_maps, batch_size: 20)
   end
 
   # Builds instances of maps from Antique e-shop "R" with attributes of antique maps
   def r_map_instance_builder(r_html_document, map_maker)
     r_html_document.css('.item.card').map do |map|
-      Map.create(
+      Map.new(
         title: map.css('.info').children[1].css('.title').text.strip,
         price: map.css('aside').children[1].text.strip.tr(" ", ""),
         map_show_page_link: "#{ENV.fetch('BASE_URL_R_MAP_SHOW_PAGE')}#{map.css('.image').children[1]['href']}",
         image_url: map.css('.image').children[1].children[1]['src'],
-        map_maker: map_maker,
-        user: current_user
+        map_maker: map_maker
       )
     end
   end
@@ -97,19 +98,19 @@ class MapsController < ApplicationController
   def map_scrapping_l(map_maker)
     l_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_L')}#{map_maker}",
                                   { headers: { "User-Agent" => user_agent_picker } })
-    l_map_instance_builder(Nokogiri::HTML(l_page.body), map_maker)
+    array_of_maps = l_map_instance_builder(Nokogiri::HTML(l_page.body), map_maker)
+    Map.import(@map_columns, array_of_maps, batch_size: 20)
   end
 
   # Builds instances of maps from Antique e-shop "L" with attributes of antique maps
   def l_map_instance_builder(html_document, map_maker)
     html_document.css('.product').map do |map|
-      Map.create(
+      Map.new(
         title: map.css('.c309 a').attr('title').value,
         price: "KČ#{map.attr('data-price')}",
         map_show_page_link: "#{ENV.fetch('BASE_URL_L_MAP_SHOW_PAGE_AND_PIC')}#{map.css('.c309 a').attr('href').value}",
         image_url: "#{ENV.fetch('BASE_URL_L_MAP_SHOW_PAGE_AND_PIC')}#{map.css('.c309 a img').attr('src').value}",
-        map_maker: map_maker,
-        user: current_user
+        map_maker: map_maker
       )
     end
   end
