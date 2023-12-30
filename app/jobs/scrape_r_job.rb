@@ -6,6 +6,7 @@ class ScrapeRJob < ApplicationJob
   def perform
     @virtual_browser = Mechanize.new
     @map_columns = %i[title price map_show_page_link image_url map_maker]
+    @user_agent = user_agent_picker
     Author.all.each do |author|
       map_scrapping_r(author.name)
     end
@@ -16,7 +17,7 @@ class ScrapeRJob < ApplicationJob
   # Scrapes and retrieves map results from Antique e-shop "R" website
   def map_scrapping_r(map_maker)
     r_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{map_maker}",
-                                  { headers: { "User-Agent" => user_agent_picker } })
+                                  { headers: { "User-Agent" => @user_agent } })
     r_html_document = Nokogiri::HTML(r_page.body)
     crawler_r(r_html_document, map_maker)
   end
@@ -29,7 +30,7 @@ class ScrapeRJob < ApplicationJob
 
     array_of_maps = url_endpoints.uniq.flat_map do |url_enpoint|
       page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{map_maker}#{url_enpoint}",
-                                  { headers: { "User-Agent" => user_agent_picker } })
+                                  { headers: { "User-Agent" => @user_agent } })
       r_map_instance_builder(Nokogiri::HTML(page.body), map_maker)
     end
 
