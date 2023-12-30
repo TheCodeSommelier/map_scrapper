@@ -6,6 +6,7 @@ class ScrapeLJob < ApplicationJob
   def perform
     @virtual_browser = Mechanize.new
     @map_columns = %i[title price map_show_page_link image_url map_maker]
+    @user_agent = user_agent_picker
     Author.all.each do |author|
       map_scrapping_l(author.name)
     end
@@ -16,7 +17,7 @@ class ScrapeLJob < ApplicationJob
   # Scrapes and retrieves map results from Antique e-shop "L" website
   def map_scrapping_l(map_maker)
     l_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_L')}#{map_maker}",
-                                  { headers: { "User-Agent" => user_agent_picker } })
+                                  { headers: { "User-Agent" => @user_agent } })
     array_of_maps = l_map_instance_builder(Nokogiri::HTML(l_page.body), map_maker)
     Map.import(@map_columns, array_of_maps, batch_size: 20)
   end
