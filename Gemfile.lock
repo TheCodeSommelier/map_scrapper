@@ -108,6 +108,8 @@ GEM
       rack-test (>= 0.6.3)
       regexp_parser (>= 1.5, < 3.0)
       xpath (~> 3.2)
+    chronic_duration (0.10.6)
+      numerizer (~> 0.1.1)
     concurrent-ruby (1.2.2)
     connection_pool (2.4.1)
     crass (1.0.6)
@@ -130,15 +132,10 @@ GEM
       ruby2_keywords
     error_highlight (0.6.0)
     erubi (1.12.0)
-    et-orbi (1.2.7)
-      tzinfo
     execjs (2.9.1)
     ffi (1.16.3)
     font-awesome-sass (6.5.1)
       sassc (~> 2.0)
-    fugit (1.9.0)
-      et-orbi (~> 1, >= 1.2.7)
-      raabro (~> 1.4)
     globalid (1.2.1)
       activesupport (>= 6.1)
     http-cookie (1.0.5)
@@ -215,6 +212,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.15.5-x86_64-linux)
       racc (~> 1.4)
+    numerizer (0.1.1)
     orm_adapter (0.5.0)
     pg (1.5.4)
     popper_js (2.11.8)
@@ -223,7 +221,6 @@ GEM
     public_suffix (5.0.4)
     puma (6.4.0)
       nio4r (~> 2.0)
-    raabro (1.4.0)
     racc (1.7.3)
     rack (3.0.8)
     rack-session (2.0.0)
@@ -296,12 +293,11 @@ GEM
       connection_pool (>= 2.3.0)
       rack (>= 2.2.4)
       redis-client (>= 0.14.0)
-    sidekiq-cron (1.12.0)
-      fugit (~> 1.8)
-      globalid (>= 1.0.1)
-      sidekiq (>= 6)
     sidekiq-failures (1.0.4)
       sidekiq (>= 4.0.0)
+    sidekiq-status (3.0.3)
+      chronic_duration
+      sidekiq (>= 6.0, < 8)
     sprockets (4.2.1)
       concurrent-ruby (~> 1.0)
       rack (>= 2.2.4, < 4)
@@ -365,8 +361,8 @@ DEPENDENCIES
   sassc-rails
   selenium-webdriver
   sidekiq
-  sidekiq-cron
   sidekiq-failures
+  sidekiq-status
   simple_form!
   sprockets-rails
   stimulus-rails

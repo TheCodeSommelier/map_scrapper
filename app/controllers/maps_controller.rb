@@ -5,15 +5,14 @@ class MapsController < ApplicationController
     return unless params[:query].present?
 
     @virtual_browser = Mechanize.new
-    map_maker = params[:query]
     @map_columns = %i[title price map_show_page_link image_url map_maker]
-    if Author.where(name: map_maker).empty?
-      Author.create(name: map_maker)
-      map_scrapping_s(map_maker)
-      map_scrapping_r(map_maker)
-      map_scrapping_l(map_maker)
+    if Author.where(name: params[:query]).empty?
+      Author.create(name: params[:query])
+      map_scrapping_s(params[:query])
+      map_scrapping_r(params[:query])
+      map_scrapping_l(params[:query])
     end
-    @all_scrapped_maps = Map.where(map_maker: map_maker).order(created_at: :desc).page(params[:page])
+    @all_scrapped_maps = Map.where(map_maker: params[:query]).order(created_at: :desc).page(params[:page])
   end
 
   private

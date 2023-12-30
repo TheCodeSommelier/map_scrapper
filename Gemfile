@@ -47,7 +47,7 @@ gem 'mechanize'
 # Allows for background jobs
 gem "sidekiq"
 gem "sidekiq-failures"
-gem "sidekiq-cron"
+gem "sidekiq-status"
 
 # Allows to save records in batches
 gem "activerecord-import"
