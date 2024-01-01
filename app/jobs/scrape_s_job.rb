@@ -44,13 +44,14 @@ class ScrapeSJob < ApplicationJob
   # Builds instances of maps from Antique e-shop "S" with attributes of antique maps
   def s_map_instance_builder(html_document, map_maker)
     html_document.css('.proditem').map do |map|
-      Map.new(
+      map_attrs = {
         title: map.css('.blue.breakup').text,
         price: map.css('.euro').text,
         map_show_page_link: map['href'],
         image_url: map.css('.img').children[1].children[1].values[-1],
         map_maker: map_maker
-      )
+      }
+      Map.where(map_attrs).empty? ? Map.new(map_attrs) : next
     end
   end
 

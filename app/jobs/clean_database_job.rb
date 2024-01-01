@@ -4,6 +4,6 @@ class CleanDatabaseJob < ApplicationJob
   queue_as :database_cleaning
 
   def perform
-    Map.destroy_all
+    # Map.destroy_all
   end
 end

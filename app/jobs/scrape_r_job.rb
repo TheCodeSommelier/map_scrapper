@@ -40,13 +40,14 @@ class ScrapeRJob < ApplicationJob
   # Builds instances of maps from Antique e-shop "R" with attributes of antique maps
   def r_map_instance_builder(r_html_document, map_maker)
     r_html_document.css('.item.card').map do |map|
-      Map.new(
+      map_attrs = {
         title: map.css('.info').children[1].css('.title').text.strip,
         price: map.css('aside').children[1].text.strip.tr(" ", ""),
         map_show_page_link: "#{ENV.fetch('BASE_URL_R_MAP_SHOW_PAGE')}#{map.css('.image').children[1]['href']}",
         image_url: map.css('.image').children[1].children[1]['src'],
         map_maker: map_maker
-      )
+      }
+      Map.where(map_attrs).empty? ? Map.new(map_attrs) : next
     end
   end
 

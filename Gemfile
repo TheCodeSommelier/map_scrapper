@@ -45,8 +45,8 @@ gem "bootsnap", require: false
 gem 'mechanize'
 
 # Allows for background jobs
-gem "sidekiq", "< 7"
-gem "sidekiq-failures", "~> 1.0"
+gem "sidekiq"
+gem "sidekiq-failures"
 gem "sidekiq-status"
 
 # Allows to save records in batches
