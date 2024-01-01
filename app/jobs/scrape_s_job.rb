@@ -37,21 +37,19 @@ class ScrapeSJob < ApplicationJob
       maps_index_page_html = @virtual_browser.get(page_url, { headers: { "User-Agent" => @user_agent } })
       s_map_instance_builder(Nokogiri::HTML(maps_index_page_html.body), map_maker)
     end
-
-    Map.import(array_of_maps, @map_columns, batch_size: 20)
+    Map.import(@map_columns, array_of_maps, batch_size: 20)
   end
 
   # Builds instances of maps from Antique e-shop "S" with attributes of antique maps
   def s_map_instance_builder(html_document, map_maker)
     html_document.css('.proditem').map do |map|
-      map_attrs = {
+      Map.new(
         title: map.css('.blue.breakup').text,
         price: map.css('.euro').text,
         map_show_page_link: map['href'],
         image_url: map.css('.img').children[1].children[1].values[-1],
         map_maker: map_maker
-      }
-      Map.where(map_attrs).empty? ? Map.new(map_attrs) : next
+      )
     end
   end
 
