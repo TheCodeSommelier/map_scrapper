@@ -8,9 +8,9 @@ class MapsController < ApplicationController
     @map_columns = %i[title price map_show_page_link image_url map_maker]
     @user_agent = user_agent_picker
     if Author.where(name: params[:query]).empty?
-      # Author.create(name: params[:query])
+      Author.create(name: params[:query])
       map_scrapping_s(params[:query])
-      # map_scrapping_r(params[:query])
+      map_scrapping_r(params[:query])
       map_scrapping_l(params[:query])
     end
     @all_scrapped_maps = Map.where(map_maker: params[:query]).order(created_at: :desc).page(params[:page])
