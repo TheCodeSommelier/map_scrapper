@@ -31,7 +31,7 @@ class ScrapeLJob < ApplicationJob
         price: "KČ#{map.attr('data-price')}",
         map_show_page_link: "#{ENV.fetch('BASE_URL_L_MAP_SHOW_PAGE_AND_PIC')}#{map.css('.c309 a').attr('href').value}",
         image_url: "#{ENV.fetch('BASE_URL_L_MAP_SHOW_PAGE_AND_PIC')}#{map.css('.c309 a img').attr('src').value}",
-        map_maker: map_maker
+        map_maker:
       )
     end
   end
