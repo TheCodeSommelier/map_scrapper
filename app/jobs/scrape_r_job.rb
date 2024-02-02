@@ -45,7 +45,7 @@ class ScrapeRJob < ApplicationJob
         price: map.css('aside').children[1].text.strip.tr(" ", ""),
         map_show_page_link: "#{ENV.fetch('BASE_URL_R_MAP_SHOW_PAGE')}#{map.css('.image').children[1]['href']}",
         image_url: map.css('.image').children[1].children[1]['src'],
-        map_maker: map_maker
+        map_maker:
       )
     end
   end

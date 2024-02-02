@@ -8,7 +8,9 @@ class ScraperWorker
     scrape_job_s_id = ScrapeSJob.perform_later
     scrape_job_r_id = ScrapeRJob.perform_later
     scrape_job_l_id = ScrapeLJob.perform_later
-    return if Sidekiq::Status.failed?(scrape_job_s_id) && Sidekiq::Status.failed?(scrape_job_r_id) && Sidekiq::Status.failed?(scrape_job_l_id)
+    if Sidekiq::Status.failed?(scrape_job_s_id) && Sidekiq::Status.failed?(scrape_job_r_id) && Sidekiq::Status.failed?(scrape_job_l_id)
+      return
+    end
 
     ScheduleJob.perform_later
   end

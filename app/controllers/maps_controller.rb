@@ -8,9 +8,9 @@ class MapsController < ApplicationController
     @map_columns = %i[title price map_show_page_link image_url map_maker]
     @user_agent = user_agent_picker
     if Author.where(name: params[:query]).empty?
-      Author.create(name: params[:query])
+      # Author.create(name: params[:query])
       map_scrapping_s(params[:query])
-      map_scrapping_r(params[:query])
+      # map_scrapping_r(params[:query])
       map_scrapping_l(params[:query])
     end
     @all_scrapped_maps = Map.where(map_maker: params[:query]).order(created_at: :desc).page(params[:page])
@@ -37,9 +37,15 @@ class MapsController < ApplicationController
 
   # Iterates through pages and collects maps from Antique e-shop "S"
   def crawling_pages(pages_urls, map_maker)
-    array_of_maps = pages_urls.flat_map do |page_url|
-      maps_index_page_html = @virtual_browser.get(page_url, { headers: { "User-Agent" => @user_agent } })
-      s_map_instance_builder(Nokogiri::HTML(maps_index_page_html.body), map_maker)
+    if pages_urls.empty?
+      maps_index_page_html = @virtual_browser.get("#{ENV.fetch('BASE_URL_S')}#{map_maker}",
+                                                  { headers: { "User-Agent" => @user_agent } })
+      array_of_maps = s_map_instance_builder(Nokogiri::HTML(maps_index_page_html.body), map_maker)
+    else
+      array_of_maps = pages_urls.flat_map do |page_url|
+        maps_index_page_html = @virtual_browser.get(page_url, { headers: { "User-Agent" => @user_agent } })
+        s_map_instance_builder(Nokogiri::HTML(maps_index_page_html.body), map_maker)
+      end
     end
 
     Map.import(@map_columns, array_of_maps, batch_size: 20)
@@ -53,13 +59,14 @@ class MapsController < ApplicationController
         price: map.css('.euro').text,
         map_show_page_link: map['href'],
         image_url: map.css('.img').children[1].children[1].values[-1],
-        map_maker: map_maker
+        map_maker:
       )
     end
   end
 
   # Scrapes and retrieves map results from Antique e-shop "R" website
   def map_scrapping_r(map_maker)
+    p "#{ENV.fetch('BASE_URL_R')}#{URI.encode_www_form_component(map_maker)}"
     r_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{map_maker}",
                                   { headers: { "User-Agent" => @user_agent } })
     r_html_document = Nokogiri::HTML(r_page.body)
@@ -72,10 +79,16 @@ class MapsController < ApplicationController
       a_tag.attr('href').slice(/&order_by=([^&]+)&relevance=([^&]+)&page=([^&]+)/)
     end
 
-    array_of_maps = url_endpoints.uniq.flat_map do |url_enpoint|
-      page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{map_maker}#{url_enpoint}",
+    if url_endpoints.empty?
+      page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{map_maker}",
                                   { headers: { "User-Agent" => @user_agent } })
-      r_map_instance_builder(Nokogiri::HTML(page.body), map_maker)
+      array_of_maps = r_map_instance_builder(Nokogiri::HTML(page.body), map_maker)
+    else
+      array_of_maps = url_endpoints.uniq.flat_map do |url_enpoint|
+        page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{map_maker}#{url_enpoint}",
+                                    { headers: { "User-Agent" => @user_agent } })
+        r_map_instance_builder(Nokogiri::HTML(page.body), map_maker)
+      end
     end
 
     Map.import(@map_columns, array_of_maps, batch_size: 20)
@@ -89,13 +102,14 @@ class MapsController < ApplicationController
         price: map.css('aside').children[1].text.strip.tr(" ", ""),
         map_show_page_link: "#{ENV.fetch('BASE_URL_R_MAP_SHOW_PAGE')}#{map.css('.image').children[1]['href']}",
         image_url: map.css('.image').children[1].children[1]['src'],
-        map_maker: map_maker
+        map_maker:
       )
     end
   end
 
   # Scrapes and retrieves map results from Antique e-shop "L" website
   def map_scrapping_l(map_maker)
+    p "#{ENV.fetch('BASE_URL_L')}#{URI.encode_www_form_component(map_maker)}"
     l_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_L')}#{map_maker}",
                                   { headers: { "User-Agent" => @user_agent } })
     array_of_maps = l_map_instance_builder(Nokogiri::HTML(l_page.body), map_maker)
@@ -110,7 +124,7 @@ class MapsController < ApplicationController
         price: "KČ#{map.attr('data-price')}",
         map_show_page_link: "#{ENV.fetch('BASE_URL_L_MAP_SHOW_PAGE_AND_PIC')}#{map.css('.c309 a').attr('href').value}",
         image_url: "#{ENV.fetch('BASE_URL_L_MAP_SHOW_PAGE_AND_PIC')}#{map.css('.c309 a img').attr('src').value}",
-        map_maker: map_maker
+        map_maker:
       )
     end
   end

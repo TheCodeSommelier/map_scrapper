@@ -48,7 +48,7 @@ class ScrapeSJob < ApplicationJob
         price: map.css('.euro').text,
         map_show_page_link: map['href'],
         image_url: map.css('.img').children[1].children[1].values[-1],
-        map_maker: map_maker
+        map_maker:
       )
     end
   end
