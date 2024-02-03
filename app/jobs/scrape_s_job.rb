@@ -33,10 +33,17 @@ class ScrapeSJob < ApplicationJob
 
   # Iterates through pages and collects maps from Antique e-shop "S"
   def crawling_pages(pages_urls, map_maker)
-    array_of_maps = pages_urls.flat_map do |page_url|
-      maps_index_page_html = @virtual_browser.get(page_url, { headers: { "User-Agent" => @user_agent } })
-      s_map_instance_builder(Nokogiri::HTML(maps_index_page_html.body), map_maker)
+    if pages_urls.empty?
+      maps_index_page_html = @virtual_browser.get("#{ENV.fetch('BASE_URL_S')}#{map_maker}",
+                                                  { headers: { "User-Agent" => @user_agent } })
+      array_of_maps = s_map_instance_builder(Nokogiri::HTML(maps_index_page_html.body), map_maker)
+    else
+      array_of_maps = pages_urls.flat_map do |page_url|
+        maps_index_page_html = @virtual_browser.get(page_url, { headers: { "User-Agent" => @user_agent } })
+        s_map_instance_builder(Nokogiri::HTML(maps_index_page_html.body), map_maker)
+      end
     end
+
     Map.import(@map_columns, array_of_maps, batch_size: 20)
   end
 

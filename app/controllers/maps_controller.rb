@@ -66,7 +66,6 @@ class MapsController < ApplicationController
 
   # Scrapes and retrieves map results from Antique e-shop "R" website
   def map_scrapping_r(map_maker)
-    p "#{ENV.fetch('BASE_URL_R')}#{URI.encode_www_form_component(map_maker)}"
     r_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{map_maker}",
                                   { headers: { "User-Agent" => @user_agent } })
     r_html_document = Nokogiri::HTML(r_page.body)
@@ -109,7 +108,6 @@ class MapsController < ApplicationController
 
   # Scrapes and retrieves map results from Antique e-shop "L" website
   def map_scrapping_l(map_maker)
-    p "#{ENV.fetch('BASE_URL_L')}#{URI.encode_www_form_component(map_maker)}"
     l_page = @virtual_browser.get("#{ENV.fetch('BASE_URL_L')}#{map_maker}",
                                   { headers: { "User-Agent" => @user_agent } })
     array_of_maps = l_map_instance_builder(Nokogiri::HTML(l_page.body), map_maker)

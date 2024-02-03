@@ -28,12 +28,18 @@ class ScrapeRJob < ApplicationJob
       a_tag.attr('href').slice(/&order_by=([^&]+)&relevance=([^&]+)&page=([^&]+)/)
     end
 
-    array_of_maps = url_endpoints.uniq.flat_map do |url_enpoint|
-      page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{map_maker}#{url_enpoint}",
+    if url_endpoints.empty?
+      page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{map_maker}",
                                   { headers: { "User-Agent" => @user_agent } })
-      r_map_instance_builder(Nokogiri::HTML(page.body), map_maker)
+      array_of_maps = r_map_instance_builder(Nokogiri::HTML(page.body), map_maker)
+    else
+      array_of_maps = url_endpoints.uniq.flat_map do |url_enpoint|
+        page = @virtual_browser.get("#{ENV.fetch('BASE_URL_R')}#{map_maker}#{url_enpoint}",
+                                    { headers: { "User-Agent" => @user_agent } })
+        r_map_instance_builder(Nokogiri::HTML(page.body), map_maker)
+      end
     end
-    array_of_maps.compact!
+
     Map.import(@map_columns, array_of_maps, batch_size: 20)
   end
 
